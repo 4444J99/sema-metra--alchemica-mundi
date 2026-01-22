@@ -402,16 +402,16 @@ describe('Character Lifecycle', () => {
     const char = new Character({
       signatureId: 'DYNAMIC',
       waveform: 'sine',
-      frequencyBase: 10, // Fast frequency
+      frequencyBase: 1, // 1 Hz frequency
     });
     char.activate();
 
     const values: number[] = [];
     for (let i = 0; i < 10; i++) {
-      values.push(char.getCurrentValue(i * 100)); // Sample at different times
+      values.push(char.getCurrentValue(i * 50)); // Sample every 50ms across 500ms
     }
 
-    // Should have some variation
+    // Should have some variation (sine wave at 1Hz over 500ms = half cycle)
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBeGreaterThan(1);
   });
