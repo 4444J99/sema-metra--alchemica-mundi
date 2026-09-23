@@ -115,3 +115,12 @@ jobs:
           else
             npm run smoke
           fi
+
+      - name: Verify packed artifact without publishing
+        if: steps.detect.outputs.pm == 'npm'
+        run: |
+          TARBALL=$(npm pack --silent)
+          TMPDIR=$(mktemp -d)
+          npm install --prefix "$TMPDIR" "./$TARBALL"
+          "$TMPDIR/node_modules/.bin/sema" --help
+          rm -f "$TARBALL"

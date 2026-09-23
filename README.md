@@ -329,65 +329,51 @@ The `sema` binary provides terminal access to all system operations:
 
 ```bash
 # Initialize system (emits genesis signal)
-npx sema init
+sema init
 
 # Roll dice (d4, d6, d8, d10, d12, d20, d100, d1000)
-npx sema roll d20
+sema roll d20
 
 # Modulate a duality (index 0-63, value -1.0 to 1.0)
-npx sema modulate 13 0.8
+sema modulate 13 0.8
 
 # Execute a ritual
-npx sema ritual invoke_shimmer
+sema ritual invoke_shimmer
 
 # Show system status (dualities, binaries, hybrids, active LFOs)
-npx sema status
+sema status
 ```
 
 ---
 
-## Installation and Usage
-
-### Installation
-
-Requires **Node.js >= 20.0.0**.
+## Installation and Development
 
 ```bash
-# Install as a package dependency
+# Install
 npm install sema-metra--alchemica-mundi
-```
 
-### Smoke Test Verification
+# Requires Node.js >= 20.0.0
 
-Verify system initialization and axiom-compliance status:
-
-```bash
-npm run smoke
-```
-
-### Development & Build Commands
-
-```bash
+# Development
 npm install          # Install dependencies
 npm test             # Run all 297 tests
-npm run test:watch   # Watch mode testing
+npm run test:watch   # Watch mode
+npm run build        # Build (includes data file copy)
 npm run typecheck    # Type check (strict mode)
-npm run build        # Build ESM library and CLI binaries into dist/
-npm run smoke        # Run execution smoke test
-npm run release:pack # Build and generate release tarball (.tgz)
+npm run cli          # Run CLI in development mode
 ```
 
 ### Dependencies
 
 | Package | Version | Role |
 |---------|---------|------|
-| commander | ^15.0.0 | CLI framework |
+| commander | ^12.0.0 | CLI framework |
 | tone | ^15.0.4 | Audio processing (FX chain) |
-| zod | ^4.4.3 | Schema validation |
+| zod | ^3.22.4 | Schema validation |
 | typescript | ^5.3.3 | Language (dev) |
 | tsup | ^8.0.1 | Build (dev) |
-| tsx | ^4.23.12 | Runtime (dev) |
-| vitest | ^4.1.10 | Testing (dev) |
+| tsx | ^4.7.0 | Runtime (dev) |
+| vitest | ^4.0.18 | Testing (dev) |
 
 ### Test Coverage
 
@@ -543,11 +529,10 @@ When contributing, ensure:
 1. All 297+ tests pass (`npm test`)
 2. Build succeeds without warnings (`npm run build`)
 3. Type checking passes in strict mode (`npm run typecheck`)
-4. Smoke test passes (`npm run smoke`)
-5. Axiom compliance validates (`validateAxiomCompliance()` returns `{ valid: true }`)
-6. New features include comprehensive tests
-7. No identity transforms (Hard Rule D applies to code, too)
-8. Documentation updated for new public API surface
+4. Axiom compliance validates (`validateAxiomCompliance()` returns `{ valid: true }`)
+5. New features include comprehensive tests
+6. No identity transforms (Hard Rule D applies to code, too)
+7. Documentation updated for new public API surface
 
 ---
 

@@ -19,9 +19,6 @@
     "dist",
     "data"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsup && cp -r data dist/",
     "dev": "tsup --watch",
@@ -30,9 +27,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "cli": "tsx src/cli/index.ts",
-    "prepublishOnly": "npm run test && npm run typecheck && npm run build",
-    "smoke": "node ./dist/cli/index.js --help && node -e \"import('./dist/index.js').then(async m => { const mundi = await m.createAlchemicaMundi(); if (!m.validateAxiomCompliance(mundi).valid) process.exit(1); console.log('SMOKE TEST PASSED: sema-metra--alchemica-mundi active and compliant'); })\"",
-    "release:pack": "npm run build && npm pack"
+    "smoke": "node ./dist/cli/index.js --help && node -e \"import('./dist/index.js').then(async m => { const mundi = await m.createAlchemicaMundi(); if (!m.validateAxiomCompliance(mundi).valid) process.exit(1); console.log('SMOKE TEST PASSED: sema-metra--alchemica-mundi active and compliant'); })\"
   },
   "keywords": [
     "matrix",
