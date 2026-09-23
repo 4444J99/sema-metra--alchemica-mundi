@@ -19,6 +19,9 @@
     "dist",
     "data"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup && cp -r data dist/",
     "dev": "tsup --watch",
@@ -26,7 +29,10 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "cli": "tsx src/cli/index.ts"
+    "cli": "tsx src/cli/index.ts",
+    "prepublishOnly": "npm run test && npm run typecheck && npm run build",
+    "smoke": "node ./dist/cli/index.js --help && node -e \"import('./dist/index.js').then(async m => { const mundi = await m.createAlchemicaMundi(); if (!m.validateAxiomCompliance(mundi).valid) process.exit(1); console.log('SMOKE TEST PASSED: sema-metra--alchemica-mundi active and compliant'); })\"",
+    "release:pack": "npm run build && npm pack"
   },
   "keywords": [
     "matrix",
@@ -39,10 +45,10 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^26.2.0",
+    "@types/node": "^20.11.0",
     "tsup": "^8.0.1",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2",
+    "typescript": "^5.3.3",
     "vitest": "^4.1.10"
   },
   "dependencies": {
