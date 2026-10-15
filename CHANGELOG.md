@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Platinum Sprint: CI/CD workflow, standardized badge row, ADR documentation
 - Initial CHANGELOG following Keep a Changelog format
 
+### Changed
+
+- Bumped npm dependencies (zod to 4.6.7, @types/node to 26.6.5, tsx to 4.23.15, vitest to 5.0.4) via Dependabot; CI green on exact head de418e5.
+
 ## [0.1.0] - 2026-02-11
 
 ### Added
