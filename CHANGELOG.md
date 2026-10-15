@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CI: pinned runner images to ubuntu-24.04 for reproducible builds
 - Dependencies: updated zod, @types/node, tsx, and vitest via Dependabot (workflow success)
+- CI: updated codecov/codecov-action via Dependabot (workflow success)
 
 ## [1.0.0] - 2026-01-22
 
