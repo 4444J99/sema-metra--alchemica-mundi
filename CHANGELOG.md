@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CI: pinned runner images to ubuntu-24.04 for reproducible builds
 - Dependencies: updated zod, @types/node, tsx, and vitest via Dependabot (workflow success)
-- CI: updated codecov/codecov-action via Dependabot (workflow success)
+- CI actions: updated actions/setup-node to 7.1.0 and codecov/codecov-action to 7.1.1 via Dependabot (CodeQL success on PR #43)
 
 ## [1.0.0] - 2026-01-22
 
@@ -28,7 +28,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial public release as part of the organvm eight-organ system
 - Core project structure and documentation
 - README with portfolio-quality documentation
-
-[Unreleased]: https://github.com/4444J99/sema-metra--alchemica-mundi/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/4444J99/sema-metra--alchemica-mundi/releases/tag/v1.0.0
-[0.1.0]: https://github.com/4444J99/sema-metra--alchemica-mundi/releases/tag/v0.1.0
