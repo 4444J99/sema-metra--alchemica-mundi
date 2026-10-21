@@ -104,3 +104,14 @@ jobs:
           else
             npm run build || echo "::notice::No build script configured"
           fi
+
+      - name: Smoke Test
+        if: steps.detect.outputs.pm != 'none'
+        run: |
+          if [ "${{ steps.detect.outputs.pm }}" == "pnpm" ]; then
+            pnpm run smoke
+          elif [ "${{ steps.detect.outputs.pm }}" == "yarn" ]; then
+            yarn smoke
+          else
+            npm run smoke
+          fi
