@@ -7,7 +7,6 @@ import type { SemaMetra } from '../core/system.js';
 import { ModulationEngine } from '../modulation/engine.js';
 import { RitualEngine, RITUAL_DEFINITIONS } from '../ritual/engine.js';
 import { FXGodRegistry } from '../fx/gods.js';
-import { FXChain } from '../fx/chain.js';
 import { PatchManager, PATCH_PRESETS } from '../patch/manager.js';
 
 let matrix: SemaMetra | null = null;

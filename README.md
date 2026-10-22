@@ -352,7 +352,8 @@ sema status
 # Install
 npm install sema-metra--alchemica-mundi
 
-# Requires Node.js >= 20.0.0
+# Runtime: Node.js >= 20.0.0
+# Development/test tools: Node.js 20.19+ or 22.12+ (Vite requirement)
 
 # Development
 npm install          # Install dependencies
