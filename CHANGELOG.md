@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependencies: updated zod, @types/node, tsx, and vitest via Dependabot (workflow success)
 - CI actions: updated actions/setup-node to 7.1.0 and codecov/codecov-action to 7.1.1 via Dependabot (CodeQL success on PR #43)
 - Secret Scan: green on main (workflow success)
+- Dependencies: bumped vite to 8.3.5 (transitive via vitest) plus related pins (TypeScript, Commander, coverage-v8) via Dependabot PR #46 (Release Drafter success); security validation in docs/security/pr-46-validation.md
 
 ## [1.0.0] - 2026-01-22
 
