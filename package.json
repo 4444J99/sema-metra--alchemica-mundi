@@ -49,7 +49,7 @@
   "dependencies": {
     "commander": "14.0.3",
     "tone": "^15.0.4",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "engines": {
     "node": ">=20.0.0"
