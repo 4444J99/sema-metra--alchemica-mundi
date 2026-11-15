@@ -987,6 +987,281 @@ describe('EventLog', () => {
     expect(restored.length).toBe(2);
     expect(restored.hasGenesis).toBe(true);
   });
+
+  describe('fromJSON validation regressions', () => {
+    it('should round-trip snapshot preserving length, currentSequence, genesis state, IDs, sequences, payloads and allow next monotonic append', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      const evt2 = spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test-source',
+        rawValue: { key: 'value123' },
+        domain: 'domainA',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      const restored = EventLog.fromJSON(snapshot);
+
+      expect(restored.length).toBe(2);
+      expect(restored.currentSequence).toBe(2);
+      expect(restored.hasGenesis).toBe(true);
+      expect(restored.getBySequence(1)?.eventId).toBe(spine.eventLog.getBySequence(1)?.eventId);
+      expect(restored.getBySequence(2)?.eventId).toBe(evt2.eventId);
+      expect(restored.getBySequence(2)?.payload).toEqual(evt2.payload);
+      expect(restored.getBySequence(2)?.hash).toBe(evt2.hash);
+      expect(restored.getBySequence(2)?.timestamp).toBe(evt2.timestamp);
+
+      // Verify appending the next monotonic sequence works cleanly
+      const nextEvt = restored.append('signal:observed', {
+        signalType: 'observation',
+        source: 'next',
+        rawValue: 'val',
+        domain: 'domainA',
+      }, context);
+
+      expect(nextEvt.sequence).toBe(3);
+      expect(restored.currentSequence).toBe(3);
+      expect(restored.getBySequence(3)?.eventId).toBe(nextEvt.eventId);
+    });
+
+    it('should allow importing empty test-only snapshots when metadata is consistent', () => {
+      const emptySnapshot = {
+        version: '1.0',
+        sequence: 0,
+        genesisReceived: false,
+        events: [],
+        exportedAt: Date.now(),
+      };
+
+      const restored = EventLog.fromJSON(emptySnapshot);
+      expect(restored.length).toBe(0);
+      expect(restored.currentSequence).toBe(0);
+      expect(restored.hasGenesis).toBe(false);
+      expect(restored.isEmpty).toBe(true);
+    });
+
+    it('should reject snapshot with duplicate event IDs', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test',
+        rawValue: 'data',
+        domain: 'test',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      // Set duplicate eventId
+      snapshot.events[1] = {
+        ...snapshot.events[1]!,
+        eventId: snapshot.events[0]!.eventId,
+      };
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'DUPLICATE_EVENT_ID',
+        })
+      );
+    });
+
+    it('should reject snapshot with duplicate event sequence numbers', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test',
+        rawValue: 'data',
+        domain: 'test',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      // Duplicate sequence 1 on event 2, and update snapshot.sequence to 1
+      snapshot.events[1] = {
+        ...snapshot.events[1]!,
+        sequence: 1,
+      };
+      snapshot.sequence = 1;
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+    });
+
+    it('should reject snapshot with decreasing event sequence numbers', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test',
+        rawValue: 'data',
+        domain: 'test',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      snapshot.events[0] = {
+        ...snapshot.events[0]!,
+        sequence: 5,
+      };
+      snapshot.events[1] = {
+        ...snapshot.events[1]!,
+        sequence: 3,
+      };
+      snapshot.sequence = 3;
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+    });
+
+    it('should reject snapshot with non-positive sequence numbers', () => {
+      const spine = createSpine(createTestGenesis());
+      const snapshot = spine.eventLog.toJSON();
+      snapshot.events[0] = {
+        ...snapshot.events[0]!,
+        sequence: 0,
+      };
+      snapshot.sequence = 0;
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+    });
+
+    it('should reject snapshot.sequence that disagrees with the final restored sequence', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test',
+        rawValue: 'data',
+        domain: 'test',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      // Tamper sequence to 0 (the exact reported defect)
+      snapshot.sequence = 0;
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+
+      // Also tamper sequence to something higher than final event
+      snapshot.sequence = 99;
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+    });
+
+    it('should reject empty snapshot with non-zero sequence', () => {
+      const snapshot = {
+        version: '1.0',
+        sequence: 5,
+        genesisReceived: false,
+        events: [],
+        exportedAt: Date.now(),
+      };
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'INVALID_SEQUENCE',
+        })
+      );
+    });
+
+    it('should reject empty snapshot claiming genesisReceived', () => {
+      const snapshot = {
+        version: '1.0',
+        sequence: 0,
+        genesisReceived: true,
+        events: [],
+        exportedAt: Date.now(),
+      };
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'NO_GENESIS',
+        })
+      );
+    });
+
+    it('should reject non-empty snapshot claiming genesisReceived is false', () => {
+      const spine = createSpine(createTestGenesis());
+      const snapshot = spine.eventLog.toJSON();
+      snapshot.genesisReceived = false;
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'NO_GENESIS',
+        })
+      );
+    });
+
+    it('should reject non-empty snapshot whose first event is not genesis', () => {
+      const spine = createSpine(createTestGenesis());
+      const snapshot = spine.eventLog.toJSON();
+      snapshot.events[0] = {
+        ...snapshot.events[0]!,
+        type: 'signal:observed' as any,
+      };
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'NO_GENESIS',
+        })
+      );
+    });
+
+    it('should reject snapshot with multiple genesis events', () => {
+      const spine = createSpine(createTestGenesis());
+      const context = createTestContext(spine.contextStore);
+
+      spine.eventLog.append('signal:observed', {
+        signalType: 'observation',
+        source: 'test',
+        rawValue: 'data',
+        domain: 'test',
+      }, context);
+
+      const snapshot = spine.eventLog.toJSON();
+      // Set second event to genesis:signal
+      snapshot.events[1] = {
+        ...snapshot.events[1]!,
+        type: 'genesis:signal' as any,
+      };
+
+      expect(() => EventLog.fromJSON(snapshot)).toThrowError(
+        expect.objectContaining({
+          name: 'EventLogError',
+          code: 'DUPLICATE_EVENT_ID',
+        })
+      );
+    });
+  });
 });
 
 // ============================================================================

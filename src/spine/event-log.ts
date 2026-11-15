@@ -358,9 +358,87 @@ export class EventLog {
    * Import from JSON snapshot
    */
   static fromJSON(snapshot: EventLogSnapshot): EventLog {
+    const events = snapshot.events;
+
+    // Validate empty snapshot consistency
+    if (events.length === 0) {
+      if (snapshot.sequence !== 0) {
+        throw new EventLogError(
+          `Empty snapshot cannot have non-zero sequence: ${snapshot.sequence}`,
+          'INVALID_SEQUENCE'
+        );
+      }
+      if (snapshot.genesisReceived) {
+        throw new EventLogError(
+          'Empty snapshot cannot claim genesisReceived',
+          'NO_GENESIS'
+        );
+      }
+    } else {
+      // Non-empty snapshot must have genesisReceived: true
+      if (!snapshot.genesisReceived) {
+        throw new EventLogError(
+          'Non-empty snapshot must have genesisReceived: true',
+          'NO_GENESIS'
+        );
+      }
+
+      // First event must be genesis
+      if (events[0]!.type !== 'genesis:signal') {
+        throw new EventLogError(
+          `First event must be genesis:signal, found: ${events[0]!.type}`,
+          'NO_GENESIS'
+        );
+      }
+
+      // Check event IDs and sequence numbers
+      const seenIds = new Set<string>();
+      let prevSequence = 0;
+
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i]!;
+
+        // No additional genesis signals allowed
+        if (i > 0 && event.type === 'genesis:signal') {
+          throw new EventLogError(
+            'Duplicate genesis signal found in snapshot',
+            'DUPLICATE_EVENT_ID'
+          );
+        }
+
+        // Duplicate event IDs check
+        if (seenIds.has(event.eventId)) {
+          throw new EventLogError(
+            `Duplicate event ID in snapshot: ${event.eventId}`,
+            'DUPLICATE_EVENT_ID'
+          );
+        }
+        seenIds.add(event.eventId);
+
+        // Sequence monotonicity and positive value check
+        if (event.sequence <= 0 || event.sequence <= prevSequence) {
+          throw new EventLogError(
+            `Invalid sequence number in snapshot: ${event.sequence} (previous: ${prevSequence})`,
+            'INVALID_SEQUENCE'
+          );
+        }
+        prevSequence = event.sequence;
+      }
+
+      // Snapshot sequence metadata must match the final event's sequence
+      const finalSequence = events[events.length - 1]!.sequence;
+      if (snapshot.sequence !== finalSequence) {
+        throw new EventLogError(
+          `Snapshot sequence (${snapshot.sequence}) does not match final event sequence (${finalSequence})`,
+          'INVALID_SEQUENCE'
+        );
+      }
+    }
+
+    // Now instantiate and populate the event log safely
     const log = new EventLog();
 
-    for (const event of snapshot.events) {
+    for (const event of events) {
       // Bypass normal append to restore exact state
       (log as unknown as { _events: SpineEvent[] })._events.push(
         Object.freeze(event)
