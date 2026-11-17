@@ -19,6 +19,31 @@
 
 ---
 
+## Install & Run
+
+Requires Node.js `>=22.18.0` (see `engines` in `package.json`).
+
+```sh
+# From a checkout: install, build, and pack the distributable tarball
+npm ci
+npm run build
+npm pack
+
+# Install the packed tarball in a clean directory and prove it runs
+mkdir sema-consumer && cd sema-consumer
+npm install ../sema-metra--alchemica-mundi-1.0.0.tgz
+npx sema --help        # exits 0, prints usage
+npx sema roll d20      # example invocation: rolls a d20
+```
+
+The same flow is checked by `tests/pack-smoke.test.ts` (build → pack → install
+in a temporary project → import the package entry → `sema --help`). Pushing a
+`v*` tag runs `.github/workflows/release.yml`, which rebuilds and validates the
+artifact the same way — it does not publish to npm and uses no credentials.
+Publishing a release remains the owner's separate call.
+
+---
+
 ## What This Is
 
 **Sema-Metra: Alchemica Mundi** is a TypeScript framework implementing an axiom-driven signal-matrix system. It functions as a programmable creative engine — a modular synthesis patchbay that routes and transforms signals across modalities using formal ontological architecture. Where conventional signal-processing frameworks treat transformation as stateless pipes (signals enter, get processed, exit unchanged), this system enforces a closed ontological loop: every output rewrites the world that interprets subsequent inputs.
