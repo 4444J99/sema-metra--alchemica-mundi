@@ -1,0 +1,50 @@
+# Release validation — builds and smoke-tests the publishable artifact.
+#
+# Triggered by pushing a `v*` tag (or manual dispatch). It validates the
+# artifact exactly as a consumer would receive it — build, pack, install in a
+# clean directory, `sema --help` — and it NEVER publishes to npm, creates a
+# GitHub Release, or uses any credential or secret. Publishing a release
+# remains the owner's separate call (see issue #18 and the 2026-09-23
+# instruction bounding this slice: non-publishing artifact-build/tag
+# validation only).
+name: Release validation (no publish)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  validate-artifact:
+    runs-on: ubuntu-24.04
+    env:
+      npm_config_engine_strict: true
+    strategy:
+      matrix:
+        node-version: [22.20.0, 24.x, 26.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests (includes the pack smoke test)
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack dry-run (record the exact artifact file list)
+        run: npm pack --dry-run

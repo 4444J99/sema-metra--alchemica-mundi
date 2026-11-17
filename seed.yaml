@@ -12,15 +12,22 @@ metadata:
   implementation_status: ACTIVE
   tier: standard
   promotion_status: CANDIDATE
-  last_validated: "2026-02-11"
+  last_validated: "2026-11-17"
   generated: "2026-02-17"
   sprint: "SENSORIA"
   language: typescript
 
+release:
+  workflow: .github/workflows/release.yml
+  trigger: push tag 'v*'
+  artifact: sema-metra--alchemica-mundi-1.0.0.tgz
+  smoke_command: npx sema --help
+  publishes_to: none (validation only; publishing a release is the owner's call)
+
 agents:
   - name: ci
     trigger: on_push
-    workflow: .github/workflows/ci-typescript.yml
+    workflow: .github/workflows/ci.yml
     description: "Continuous integration pipeline"
 
 produces:

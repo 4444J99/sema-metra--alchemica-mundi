@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "build": "tsup && cp -r data dist/",
+    "prepublishOnly": "npm run build",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -38,6 +39,10 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/4444J99/sema-metra--alchemica-mundi.git"
+  },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "5.1.0",
