@@ -20,7 +20,7 @@
     "data"
   ],
   "scripts": {
-    "build": "tsup && cp -r data dist/",
+    "build": "tsup && tsc --emitDeclarationOnly && cp -r data dist/",
     "prepublishOnly": "npm run build",
     "dev": "tsup --watch",
     "test": "vitest run",
